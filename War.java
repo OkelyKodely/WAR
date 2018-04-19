@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
@@ -10,6 +9,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.AudioFormat;
+import javax.swing.*;
 
 public class War implements KeyListener {
 
@@ -20,12 +20,10 @@ public class War implements KeyListener {
     }
 
     public void randomizeMiniNewEnemySoldiers() {
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < 11; i++) {
             es.add(new EnemySoldier(this));
         }
     }
-
-    public int deadCount = 0;
 
     private Graphics g = null;
     
@@ -35,56 +33,52 @@ public class War implements KeyListener {
     
     private JPanel panel = new JPanel();
     
+    public int deadCount = 0;
+    
+    public int bomb = 0;
+    
+    public int life = 100;
+
+    public List<EnemySoldier.Shoot> shoots = new ArrayList<EnemySoldier.Shoot>();
+    
     private List<EnemySoldier> es = new ArrayList<EnemySoldier>();
     
+    private List<Coin> coins = new ArrayList<Coin>();
     
     private JLabel asdfsdf = new JLabel("How to play?");
     
     private JLabel txt = new JLabel("To shoot space; To bomb enter~~~~~~~~~");
     
-    
     public War() {
         try {
-File audioFile = new File("a.wav");
-AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-AudioFormat format = audioStream.getFormat();
-DataLine.Info info = new DataLine.Info(Clip.class, format);
-Clip audioClip = (Clip) AudioSystem.getLine(info);
-audioClip.open(audioStream);
-audioClip.loop(Clip.LOOP_CONTINUOUSLY);
-//audioClip.start();
-//audioClip.close();
-audioStream.close();
+            File audioFile = new File("a.wav");
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            AudioFormat format = audioStream.getFormat();
+            DataLine.Info info = new DataLine.Info(Clip.class, format);
+            Clip audioClip = (Clip) AudioSystem.getLine(info);
+            audioClip.open(audioStream);
+            audioClip.loop(Clip.LOOP_CONTINUOUSLY);
+            audioStream.close();
         } catch (Exception ex) {
             try {
-File audioFile = new File("src/a.wav");
-AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-AudioFormat format = audioStream.getFormat();
-DataLine.Info info = new DataLine.Info(Clip.class, format);
-Clip audioClip = (Clip) AudioSystem.getLine(info);
-audioClip.open(audioStream);
-audioClip.loop(Clip.LOOP_CONTINUOUSLY);
-//audioClip.start();
-//audioClip.close();
-audioStream.close();
+                File audioFile = new File("src/a.wav");
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+                AudioFormat format = audioStream.getFormat();
+                DataLine.Info info = new DataLine.Info(Clip.class, format);
+                Clip audioClip = (Clip) AudioSystem.getLine(info);
+                audioClip.open(audioStream);
+                audioClip.loop(Clip.LOOP_CONTINUOUSLY);
+                audioStream.close();
             } catch(Exception e) {System.out.println(e.getMessage());}
-            
         }
         
         try {
-            
             String title = "WAR";
-            
             frame.setTitle(title);
-            
             frame.setLayout(null);
-            
             frame.setSize(new Dimension(1200, 900));
-
             frame.setLocation(0, 0);
-
             panel.setSize(new Dimension(1200, 700));
-            
             panel.setLocation(0, 0);
 
             frame.add(panel);
@@ -109,10 +103,9 @@ audioStream.close();
 
             frame.setVisible(true);
             
-            frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+            ///frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+            frame.setTitle("WAR " + "life: " + life + " bombs: " + bomb);
 
-            if(true) {
-            
             randomizeNewEnemySoldiers();
             
             g = panel.getGraphics();
@@ -121,69 +114,145 @@ audioStream.close();
                     public void run() {
                         while(true) {
                             try {
+                                frame.setTitle("WAR " + "life: " + life + " bombs: " + bomb);
                                 Thread.sleep(20);
-                                
                                 drawBattleField(g);
-                                
                                 drawSoldier(g);
-            
                                 drawEnemies(g);
-
-                                for(Iterator<Rambo.Shoot> it = rambo.theShoot.iterator(); it.hasNext(); ) {
-                                    Rambo.Shoot shoot = it.next();
+                                drawRamboAssets();
+                                drawCoins();
+                                
+                                for(int i=0; i<coins.size(); i++) {
+                                    Coin coin = coins.get(i);
+                                    if(coin.didYouEatMe(rambo.x, rambo.y)) {
+                                        coins.remove(coin);
+                                        ++bomb;
+                                    }
+                                    --coin.ttl;
+                                    if(coin.ttl <= 0) {
+                                        coins.remove(coin);
+                                    }
+                                }
+                                
+                                for(int i=0; i<rambo.theShoot.size(); i++) {
+                                    Rambo.Shoot shoot = rambo.theShoot.get(i);
                                     shoot.moveRight();
                                     drawShoots(shoot);
-                                    for(Iterator<EnemySoldier> i = es.iterator(); i.hasNext(); ) {
-                                        EnemySoldier enemySoldier = i.next();
+                                    for(int j=0; j<es.size(); j++) {
+                                        EnemySoldier enemySoldier = es.get(j);
                                         if(enemySoldier.didYouDie(shoot.x, shoot.y)) {
-                                            i.remove();
+                                            es.remove(enemySoldier);
+                                            Coin coin = new Coin(shoot.x, shoot.y);
+                                            coins.add(coin);
+                                            ++life;
                                         }
                                     }
-                                    //if(shoot.x > 1200)
-                                        //it.remove();
+                                    if(shoot.x > 1200)
+                                        rambo.theShoot.remove(shoot);
                                 }
-
-                                for(Iterator<Rambo.Bomb> it = rambo.bombs.iterator(); it.hasNext(); ) {
-                                    Rambo.Bomb bomb = it.next();
+                                
+                                for(int i=0; i<rambo.bombs.size(); i++) {
+                                    Rambo.Bomb bomb = rambo.bombs.get(i);
                                     --bomb.ttl;
                                     bomb.moveRight();
                                     drawBombs(bomb);
-                                    for(Iterator<EnemySoldier> i = es.iterator(); i.hasNext(); ) {
-                                        EnemySoldier enemySoldier = i.next();
+                                    for(int j=0; j<es.size(); j++) {
+                                        EnemySoldier enemySoldier = es.get(j);
                                         if(enemySoldier.didYouExplode(bomb.x, bomb.y)) {
                                             drawExplosion(bomb.x, bomb.y);
-                                            i.remove();
+                                            es.remove(enemySoldier);
+                                            Coin coin = new Coin(bomb.x, bomb.y);
+                                            coins.add(coin);
                                         }
                                     }
                                     if(bomb != null)
                                     if(bomb.ttl <= 0) {
                                         drawExplosion(bomb.x, bomb.y);
-                                        drawExplosion(bomb.x, bomb.y);
-                                        drawExplosion(bomb.x, bomb.y);
-                                        drawExplosion(bomb.x, bomb.y);
-                                        //it.remove();
+                                        rambo.bombs.remove(bomb);
                                     }
                                 }
                                 
+                                for(int j=0; j<es.size(); j++) {
+                                    EnemySoldier enemySoldier = es.get(j);
+                                    enemySoldier.shoot(rambo);
+                                }
+
+                                for(int i=0; i<shoots.size(); i++) {
+                                    EnemySoldier.Shoot shoot = shoots.get(i);
+                                    shoot.moveLeft();
+                                    drawEnemyShoots(shoot);
+                                    if(shoot.x >= rambo.x && shoot.y >= rambo.y &&
+                                            shoot.x <= rambo.x + 40 && shoot.y <= rambo.y + 40) {
+                                        life-=2;
+                                    }
+                                }
+
+                                if(life <= 0)
+                                    System.exit(1);
                                 if(es.size() == 0) {
                                     randomizeNewEnemySoldiers();
                                 }
                                 
                             } catch(Exception e) {
-                                System.out.println(e.getMessage());
+                                e.printStackTrace();
+                                 System.out.println(e.getMessage());
                                 
                                 System.out.println("shoots: " + rambo.theShoot.size());
                                 System.out.println("bombs: " + rambo.bombs.size());
+                            
+                                List<Rambo.Shoot> l = new ArrayList<Rambo.Shoot>();
+                                for(int i=0; i<rambo.theShoot.size(); i++) {
+                                    l.add(rambo.theShoot.get(i));
                                 }
+                                List<Rambo.Bomb> b = new ArrayList<Rambo.Bomb>();
+                                for(int i=0; i<rambo.bombs.size(); i++) {
+                                    b.add(rambo.bombs.get(i));
+                                }
+                                rambo.theShoot.clear();
+                                rambo.bombs.clear();
+                                for(int i=0; i<l.size(); i++) {
+                                    rambo.theShoot.add(l.get(i));
+                                }
+                                for(int i=0; i<b.size(); i++) {
+                                    rambo.bombs.add(b.get(i));
+                                }
+                            }
                         }
                     }
                 });
                 t.start();
-            } catch(Exception e) {System.out.println(e.getMessage());}
-            }        
-        } catch(Exception e) {System.out.println(e.getMessage());}
+            } catch(Exception e) {}
+        } catch(Exception e) {}
     }
     
+    public void drawCoins() {
+        for(int i=0; i<coins.size(); i++) {
+            Coin coin = coins.get(i);
+            drawCoins(coin);
+        }
+    }
+    
+    public void drawCoins(Coin coin) {
+        java.awt.Image img = null;
+        String image = "coin.gif";
+        javax.swing.ImageIcon i = new javax.swing.ImageIcon(this.getClass().getResource(image));
+        img = i.getImage();
+        g.drawImage(img, coin.x, coin.y, 40, 40, null);
+    }
+
+    private void drawRamboAssets() {
+        for(int i=0; i<rambo.theShoot.size(); i++) {
+            Rambo.Shoot shoot = rambo.theShoot.get(i);
+            shoot.moveRight();
+            drawShoots(shoot);
+        }
+        for(int i=0; i<rambo.bombs.size(); i++) {
+            Rambo.Bomb bomb = rambo.bombs.get(i);
+            bomb.moveRight();
+            drawBombs(bomb);
+        }
+    }
+
     private void drawBattleField(Graphics g) {
         java.awt.Image img = null;
         String image = "battlefield.jpg";
@@ -222,9 +291,19 @@ audioStream.close();
         g.drawImage(imgFb, shoot.x, shoot.y, 50, 50, null);
     }
     
+    private void drawEnemyShoots(EnemySoldier.Shoot shoot) {
+        if(shoot == null)
+            return;
+        java.awt.Image imgFb = null;
+        String imageFb = "laser.gif";
+        javax.swing.ImageIcon iFb = new javax.swing.ImageIcon(this.getClass().getResource(imageFb));
+        imgFb = iFb.getImage();
+        g.drawImage(imgFb, shoot.x, shoot.y, 50, 50, null);
+    }
+
     private void drawEnemies(Graphics g) {
-        for(Iterator<EnemySoldier> it = es.iterator(); it.hasNext(); ) {
-            EnemySoldier sold = it.next();
+        for(int i=0; i<es.size(); i++) {
+            EnemySoldier sold = es.get(i);
 
             java.awt.Image imgSold = null;
             String imageSold = "enemysoldier.gif";
@@ -264,6 +343,10 @@ audioStream.close();
                 sold.width += 10;
                 sold.height += 10;
             }
+
+            if(sold.x < 0) {
+                es.remove(sold);
+            }
         }
     }
     
@@ -292,21 +375,14 @@ audioStream.close();
         
         
         if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            rambo.throwBomb();
-            for(Iterator<Rambo.Bomb> it = rambo.bombs.iterator(); it.hasNext(); ) {
-                Rambo.Bomb bomb = it.next();
-                bomb.moveRight();
-                drawBombs(bomb);
+            if(bomb > 0) {
+                rambo.throwBomb();
+                --bomb;
             }
         }
 
         if(e.getKeyCode() == KeyEvent.VK_SPACE) {
             rambo.shoot();
-            for(Iterator<Rambo.Shoot> it = rambo.theShoot.iterator(); it.hasNext(); ) {
-                Rambo.Shoot shoot = it.next();
-                shoot.moveRight();
-                drawShoots(shoot);
-            }
         }
 
         if(e.getKeyCode() == KeyEvent.VK_UP) {

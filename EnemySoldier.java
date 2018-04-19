@@ -18,6 +18,37 @@ public class EnemySoldier {
     
     public War war = null;
     
+    public List<Shoot> shoots = new ArrayList<Shoot>();
+    
+    public Shoot shoot = null;
+    
+    public boolean firing = false;
+
+    public void shoot(Rambo rambo) {
+        if(rambo.y >= this.y - 10 && rambo.y <= this.y + 10) {
+            shoot = new Shoot(this.x, this.y);
+            war.shoots.add(shoot);
+        }
+    }
+    
+    public class Shoot {
+        
+        public int x;
+        
+        public int y;
+        
+        public Shoot(int x, int y) {
+            
+            this.x = x;
+            
+            this.y = y;
+        }
+
+        public void moveLeft() {
+            x-=10;
+        }
+    }
+    
     public EnemySoldier(War war) {
         
         this.war = war;
@@ -39,7 +70,7 @@ public class EnemySoldier {
         y+=10;
         if(y < 0)
             y+=10;
-        if(y > 700)
+        if(y > 660)
             y-=10;
     }
 
@@ -49,9 +80,10 @@ public class EnemySoldier {
             x-=10;
         if(x < 0) {
             ++war.deadCount;
-        }
-        if((double)war.deadCount/(double)10>0.5) {
-            war.randomizeMiniNewEnemySoldiers();
+            if((double)war.deadCount/(double)10>0.8) {
+                war.randomizeMiniNewEnemySoldiers();
+                war.deadCount = 0;
+            }
         }
     }
 

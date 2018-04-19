@@ -16,7 +16,7 @@ public class Rambo {
         
         public int y;
         
-        public int ttl = 135;
+        public int ttl = 35;
         
         public Bomb(int x, int y) {
             
@@ -84,7 +84,7 @@ public class Rambo {
         y+=30;
         if(y < 0)
             y+=30;
-        if(y > 700)
+        if(y > 660)
             y-=30;
     }
 
