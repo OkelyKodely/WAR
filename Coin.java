@@ -6,9 +6,9 @@ public class Coin {
     
     public int y = 0;
     
-    public int width = 60;
+    public int width = 80;
     
-    public int height = 60;
+    public int height = 80;
     
     public Coin(int x, int y) {
         
@@ -18,7 +18,7 @@ public class Coin {
     }
 
     public boolean didYouEatMe(int x, int y) {
-        if(this.x >= x - 0 && this.y >= y - 0 && this.x <= x + 40 && this.y <= y + 40) {
+        if(this.x >= x - 0 && this.y >= y - 0 && this.x <= x + 80 && this.y <= y + 80) {
             return true;
         }
         return false;

@@ -48,7 +48,7 @@ public class Rambo {
         }
 
         public void moveRight() {
-            x+=10;
+            x+=30;
             if(x < 0)
                 x+=10;
             if(x > 1200)
@@ -70,6 +70,8 @@ public class Rambo {
             theShoot = new ArrayList<Shoot>();
         }
         theShoot.add(new Shoot(x, y));
+        theShoot.add(new Shoot(x, y+16));
+        theShoot.add(new Shoot(x, y+32));
     }
     
     public void moveTop() {
@@ -84,7 +86,7 @@ public class Rambo {
         y+=30;
         if(y < 0)
             y+=30;
-        if(y > 660)
+        if(y > 620)
             y-=30;
     }
 
