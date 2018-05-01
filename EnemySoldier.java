@@ -4,15 +4,15 @@ import java.util.Random;
 
 public class EnemySoldier {
 
+    private int v;
+ 
+    private int steps;
+
     private Random r = new Random();
     
     public int x = 0;
     
     public int y = 0;
-    
-    public int dest1x = 0, dest1y = 0, dest2x = 0, dest2y = 0,
-            dest3x = 0, dest3y = 0, dest4x = 0, dest4y = 0, dest5x = 0, dest5y = 0,
-            dest6x = 0, dest6y = 0, dest7x = 0, dest7y = 0;
     
     public int dest = 0;
     
@@ -29,7 +29,11 @@ public class EnemySoldier {
     public Shoot shoot = null;
     
     public boolean firing = false;
-
+    
+    public int dest1x = 0, dest1y = 0, dest2x = 0, dest2y = 0,
+            dest3x = 0, dest3y = 0, dest4x = 0, dest4y = 0, dest5x = 0, dest5y = 0,
+            dest6x = 0, dest6y = 0, dest7x = 0, dest7y = 0;
+    
     public void shoot(Rambo rambo) {
         if(rambo.y >= this.y - 10 && rambo.y <= this.y + 10) {
             int w = r.nextInt(3);
@@ -38,14 +42,54 @@ public class EnemySoldier {
                 war.shoots.add(shoot);
             }
         }
+
+        int w = r.nextInt(233);
+        if(w == 1) {
+            shoot = new Shoot(this.x, this.y);
+            shoot.awayWidth = this.x - rambo.x;
+            shoot.awayHeight = this.y - rambo.y;
+
+            if(shoot.awayWidth == 0) {
+                shoot.movx = 0;
+                if(shoot.awayHeight < 0)
+                    shoot.movy = 6;
+                if(shoot.awayHeight > 0)
+                    shoot.movy = -6;
+            }
+            else if(shoot.awayWidth != 0) {
+                shoot.rat = (double) shoot.awayHeight / (double) shoot.awayWidth;
+                if(shoot.rat < 0)
+                    shoot.rat *= -1d;
+                if(shoot.awayWidth < 0)
+                    shoot.movx = 6;
+                if(shoot.awayWidth > 0)
+                    shoot.movx = -6;
+                if(shoot.awayHeight < 0)
+                    shoot.movy = (int) (6d*shoot.rat);
+                if(shoot.awayHeight > 0)
+                    shoot.movy = -(int) (6d*shoot.rat);
+            }
+            
+            war.shoots.add(shoot);
+        }
     }
     
     public class Shoot {
         
+        public double rat = -1d;
+            
         public int x;
         
         public int y;
         
+        public int awayWidth = 0;
+
+        public int awayHeight = 0;
+        
+        public int movx;
+        
+        public int movy;
+
         public Shoot(int x, int y) {
             
             this.x = x;
@@ -130,68 +174,6 @@ public class EnemySoldier {
     }
     
     public void nextMove() {
-        /*
-        if(dest == 0) {
-            x = dest1x;
-            y = dest1y;
-            dest = 1;
-        }
-        else if(dest == 1) {
-            x = dest2x;
-            y = dest2y;
-            dest = 2;
-        }
-        else if(dest == 2) {
-            x = dest3x;
-            y = dest3y;
-            dest = 3;
-        }
-        else if(dest == 3) {
-            x = dest4x;
-            y = dest4y;
-            dest = 4;
-        }
-        else if(dest == 4) {
-            x = dest5x;
-            y = dest5y;
-            dest = 5;
-        }
-        else if(dest == 5) {
-            x = dest6x;
-            y = dest6y;
-            dest = 6;
-        }
-        else if(dest == 6) {
-            x = dest7x;
-            y = dest7y;
-            dest = 7;
-        }
-        else if(dest == 7) {
-            dest1x = x - 30;
-            dest1y = y - 30;
-
-            dest2x = x - 45;
-            dest2y = y - 30;
-
-            dest3x = x - 60;
-            dest3y = y;
-
-            dest4x = x - 45;
-            dest4y = y + 30;
-
-            dest5x = x - 30;
-            dest5y = y + 30;
-
-            dest6x = x;
-            dest6y = y;
-
-            dest7x = x - 5;
-            dest7y = y;
-
-            dest = 0;
-        }
-        */
-        
         if(steps == 5)
             steps = 0;
         if(steps == 0)
@@ -208,17 +190,16 @@ public class EnemySoldier {
         miniMoveLeft();
         ++steps;
     }
-    int v;
-    int steps;
+
     public boolean didYouDie(int x, int y) {
-        if(this.x >= x - 14 && this.y >= y - 14 && this.x <= x + 14 && this.y <= y + 14) {
+        if(this.x >= x - 38 && this.y >= y - 38 && this.x <= x + 38 && this.y <= y + 38) {
             return true;
         }
         return false;
     }
 
     public boolean didYouExplode(int x, int y) {
-        if(this.x >= x - 44 && this.y >= y - 44 && this.x <= x + 44 && this.y <= y + 44) {
+        if(this.x >= x - 338 && this.y >= y - 338 && this.x <= x + 338 && this.y <= y + 338) {
             return true;
         }
         return false;
